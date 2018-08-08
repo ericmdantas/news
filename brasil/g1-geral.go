@@ -7,7 +7,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-func GatherNewsFromG1(wg *sync.WaitGroup) {
+func GatherNewsFromG1Geral(wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	var newsList []string
@@ -31,7 +31,7 @@ func GatherNewsFromG1(wg *sync.WaitGroup) {
 		newsList = append(newsList, news)
 	})
 	
-	fmt.Println("\n\n[G1]\n")
+	fmt.Println("\n\n[G1 Geral]\n")
 	
 	for _, v := range newsList {
 		fmt.Printf("-> %s\n", v)

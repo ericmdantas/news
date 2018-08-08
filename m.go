@@ -63,7 +63,7 @@ func main() {
 		web.GetWeb(&wg)
 		break
 	default:
-		panic("escolhe um tipo de notícia ai, maluco")
+		panic("-type=hn|br|gg|sci|web|all")
 	}
 	
 	wg.Wait()
