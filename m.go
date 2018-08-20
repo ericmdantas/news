@@ -1,49 +1,49 @@
 package main
 
 import (
-	"sync"
 	"flag"
 	"fmt"
+	"sync"
 	"time"
-	
-	"github.com/ericmdantas/news/games"
-	"github.com/ericmdantas/news/science"
-	"github.com/ericmdantas/news/hn"
-	"github.com/ericmdantas/news/brasil"
-	"github.com/ericmdantas/news/web"
+
+	"github.com/ericmdantas/ns/brasil"
+	"github.com/ericmdantas/ns/games"
+	"github.com/ericmdantas/ns/hn"
+	"github.com/ericmdantas/ns/science"
+	"github.com/ericmdantas/ns/web"
 )
 
 const (
-	typeWeb = "web"
-	typeGames = "gg"
-	typeBrasil = "br"
+	typeWeb     = "web"
+	typeGames   = "gg"
+	typeBrasil  = "br"
 	typeScience = "sci"
-	typeHN = "hn"
-	typeAll = "all"
+	typeHN      = "hn"
+	typeAll     = "all"
 )
 
 func getAll(wg *sync.WaitGroup) {
 	hn.GetHN(wg)
 	science.GetScience(wg)
 	brasil.GetBrasil(wg)
-	games.GetGames(wg)		
+	games.GetGames(wg)
 	web.GetWeb(wg)
 }
 
 func main() {
 	var wg sync.WaitGroup
-	
+
 	start := time.Now()
-	
-	t := flag.String("type", "", "Type of news to be shown")
+
+	t := flag.String("type", "", "Type of ns to be shown")
 	flag.Parse()
 
-	if (*t == "") {
+	if *t == "" {
 		panic("escolhe um tipo de notícia ai, maluco")
-		return 
+		return
 	}
-	
-	switch (*t) {
+
+	switch *t {
 	case typeAll:
 		getAll(&wg)
 		break
@@ -65,8 +65,8 @@ func main() {
 	default:
 		panic("-type=hn|br|gg|sci|web|all")
 	}
-	
+
 	wg.Wait()
-	
+
 	fmt.Printf("\n\n---> it took %v to gather it all :D\n", time.Since(start))
 }
