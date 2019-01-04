@@ -32,6 +32,7 @@ func (ns *news) addNews(title, url string) {
 }
 
 var newsDB = []news{}
+var start = time.Now()
 
 func hn(wg *sync.WaitGroup) {
 	const hnName = "HN"
@@ -64,7 +65,7 @@ func runAll(wg *sync.WaitGroup) {
 	go hn(wg)
 }
 
-func logStats(start time.Time) {
+func logStats() {
 	fmt.Printf("\nElapsed time: %v", time.Since(start))
 }
 
@@ -80,9 +81,8 @@ func logNews() {
 
 func main() {
 	var wg sync.WaitGroup
-	start := time.Now()
 	runAll(&wg)
 	wg.Wait()
 	logNews()
-	logStats(start)
+	logStats()
 }
