@@ -20,9 +20,11 @@ type news struct {
 	}
 }
 
-func (ns *news) addGroup(group, url string) {
-	ns.Group = group
-	ns.URL = url
+func createNews(group, url string) news {
+	return news{
+		Group: group,
+		URL:   url,
+	}
 }
 
 func (ns *news) addNews(title, url string) {
@@ -37,25 +39,69 @@ var newsDB = []news{}
 var start = time.Now()
 
 func hn(wg *sync.WaitGroup) {
-	const hnName = "HN"
-	const hnURL = "https://news.ycombinator.com/news"
+	const name = "HN"
+	const url = "https://news.ycombinator.com/news"
 
 	defer wg.Done()
 
-	doc, err := goquery.NewDocument(hnURL)
+	doc, err := goquery.NewDocument(url)
 
 	if err != nil {
 		panic(err)
 	}
 
-	ns := news{
-		Group: hnName,
-		URL:   hnURL,
-	}
+	ns := createNews(name, url)
 
 	doc.Find(".athing").Each(func(_ int, s *goquery.Selection) {
 		txt := s.Find(".title:last-of-type .storylink").Text()
-		url := s.Find(".title:last-of-type .storylink").Text()
+		url := ""
+		ns.addNews(txt, url)
+	})
+
+	newsDB = append(newsDB, ns)
+}
+
+func physOrg(wg *sync.WaitGroup) {
+	const name = "phys.org"
+	const url = "https://phys.org"
+
+	defer wg.Done()
+
+	doc, err := goquery.NewDocument(url)
+
+	if err != nil {
+		panic(err)
+	}
+
+	ns := createNews(name, url)
+
+	doc.Find(".news-box h3").Each(func(_ int, s *goquery.Selection) {
+		txt := s.Text()
+		url := ""
+		ns.addNews(txt, url)
+	})
+
+	newsDB = append(newsDB, ns)
+}
+
+func lookupAtSpace(wg *sync.WaitGroup) {
+	const name = "lookupat.space"
+	const url = "http://lookupat.space/fetch/5b242458c632ddb37d2e00b2f30dca144b8de39d08d3b20fdadbfcff0fc8a25f"
+
+	defer wg.Done()
+
+	doc, err := goquery.NewDocument(url)
+
+	if err != nil {
+		panic(err)
+	}
+
+	ns := createNews(name, url)
+
+	doc.Find(".post").Each(func(_ int, s *goquery.Selection) {
+		txt := s.Find(".post-title").Eq(0).Text()
+		url, _ := s.Find(".btn.btn-default.border").Eq(0).Attr("href")
+
 		ns.addNews(txt, url)
 	})
 
@@ -64,7 +110,7 @@ func hn(wg *sync.WaitGroup) {
 
 func run(t string, wg *sync.WaitGroup) {
 	if t == "" {
-		log.Fatal("type not found")
+		log.Fatal("choose the type")
 	}
 
 	switch t {
@@ -72,8 +118,19 @@ func run(t string, wg *sync.WaitGroup) {
 		wg.Add(1)
 		go hn(wg)
 		break
+	case "science":
+		wg.Add(1)
+		go physOrg(wg)
+		go lookupAtSpace(wg)
+		break
+	case "all":
+		wg.Add(3)
+		go hn(wg)
+		go physOrg(wg)
+		go lookupAtSpace(wg)
+		break
 	default:
-		log.Fatal("type doesn't exist")
+		log.Fatalf("%s: type doesn't exist", t)
 	}
 }
 
@@ -83,10 +140,16 @@ func logStats() {
 
 func logNews() {
 	for _, news := range newsDB {
-		fmt.Printf("\n%s (%s)\n\n", news.Group, news.URL)
+		fmt.Printf("\n%s - %s\n\n", news.Group, news.URL)
 
 		for _, newsInfo := range news.Info {
-			fmt.Printf("%d. %s (%s)\n", newsInfo.Index, newsInfo.Title, newsInfo.URL)
+			fmt.Printf("%d. %s", newsInfo.Index, newsInfo.Title)
+
+			if newsInfo.URL != "" {
+				fmt.Printf(" - %s", newsInfo.URL)
+			}
+
+			fmt.Println()
 		}
 	}
 }
