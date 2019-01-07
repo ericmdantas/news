@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -60,9 +62,19 @@ func hn(wg *sync.WaitGroup) {
 	newsDB = append(newsDB, ns)
 }
 
-func runAll(wg *sync.WaitGroup) {
-	wg.Add(1)
-	go hn(wg)
+func run(t string, wg *sync.WaitGroup) {
+	if t == "" {
+		log.Fatal("type not found")
+	}
+
+	switch t {
+	case "hn":
+		wg.Add(1)
+		go hn(wg)
+		break
+	default:
+		log.Fatal("type doesn't exist")
+	}
 }
 
 func logStats() {
@@ -81,7 +93,11 @@ func logNews() {
 
 func main() {
 	var wg sync.WaitGroup
-	runAll(&wg)
+
+	t := flag.String("t", "", "news type")
+	flag.Parse()
+
+	run(*t, &wg)
 	wg.Wait()
 	logNews()
 	logStats()
