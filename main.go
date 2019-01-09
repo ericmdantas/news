@@ -70,8 +70,62 @@ type simpleInfo struct {
 	URL   string `json:"url"`
 }
 
+type fetcher struct {
+	token     string
+	fetchList []func()
+}
+
 var newsDB = []news{}
+var fetchersDB = []fetcher{}
 var start = time.Now()
+
+func registerFetchers(wg *sync.WaitGroup) {
+	fetchers := []fetcher{
+		{
+			token: "hn",
+			fetchList: []func(){
+				func() {
+					hn(wg)
+				},
+			},
+		},
+		{
+			token: "science",
+			fetchList: []func(){
+				func() {
+					lookupAtSpace(wg)
+				},
+				func() {
+					physOrg(wg)
+				},
+			},
+		},
+		{
+			token: "r",
+			fetchList: []func(){
+				func() {
+					cs(wg)
+				},
+			},
+		},
+	}
+
+	fetchAll := fetcher{
+		token: "all",
+	}
+
+	var allFetchList []func()
+
+	for _, v := range fetchers {
+		for _, cb := range v.fetchList {
+			allFetchList = append(allFetchList, cb)
+		}
+	}
+
+	fetchAll.fetchList = allFetchList
+
+	fetchersDB = append(fetchers, fetchAll)
+}
 
 func hn(wg *sync.WaitGroup) {
 	const name = "HN"
@@ -180,29 +234,13 @@ func run(t string, wg *sync.WaitGroup) {
 		log.Fatal("choose the type")
 	}
 
-	switch t {
-	case "hn":
-		wg.Add(1)
-		go hn(wg)
-		break
-	case "science":
-		wg.Add(2)
-		go physOrg(wg)
-		go lookupAtSpace(wg)
-		break
-	case "r":
-		wg.Add(1)
-		go cs(wg)
-		break
-	case "all":
-		wg.Add(4)
-		go hn(wg)
-		go physOrg(wg)
-		go lookupAtSpace(wg)
-		go cs(wg)
-		break
-	default:
-		log.Fatalf("%s: type doesn't exist", t)
+	for _, v := range fetchersDB {
+		if v.token == t {
+			for _, cb := range v.fetchList {
+				wg.Add(1)
+				go cb()
+			}
+		}
 	}
 }
 
@@ -232,6 +270,7 @@ func main() {
 	t := flag.String("t", "", "news type")
 	flag.Parse()
 
+	registerFetchers(&wg)
 	run(*t, &wg)
 	wg.Wait()
 	logNews()
