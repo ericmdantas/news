@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"sync"
 	"time"
 
@@ -33,6 +35,39 @@ func (ns *news) addNews(title, url string) {
 		Title string
 		URL   string
 	}{len(ns.Info), title, url})
+}
+
+type reddit struct {
+	Data struct {
+		Children []struct {
+			Data struct {
+				Title string `json:"title"`
+				URL   string `json:"url"`
+			} `json:"data"`
+		} `json:"children"`
+	} `json:"data"`
+}
+
+func (r reddit) isEmpty() bool {
+	return len(r.Data.Children) == 0
+}
+
+func (r reddit) retrieveNews() []simpleInfo {
+	var sList []simpleInfo = []simpleInfo{}
+
+	for _, v := range r.Data.Children {
+		sList = append(sList, simpleInfo{
+			Title: v.Data.Title,
+			URL:   v.Data.URL,
+		})
+	}
+
+	return sList
+}
+
+type simpleInfo struct {
+	Title string `json:"title"`
+	URL   string `json:"url"`
 }
 
 var newsDB = []news{}
@@ -108,6 +143,38 @@ func lookupAtSpace(wg *sync.WaitGroup) {
 	newsDB = append(newsDB, ns)
 }
 
+func cs(wg *sync.WaitGroup) {
+	const name = "Global Offensive"
+	const url = "http://reddit.com/r/GlobalOffensive/.json"
+
+	var csStuff reddit
+
+	defer wg.Done()
+
+	ns := createNews(name, url)
+
+	for csStuff.isEmpty() {
+		time.Sleep(1500 * time.Millisecond)
+		r, err := http.Get(url)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = json.NewDecoder(r.Body).Decode(&csStuff)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	for _, v := range csStuff.retrieveNews() {
+		ns.addNews(v.Title, v.URL)
+	}
+
+	newsDB = append(newsDB, ns)
+}
+
 func run(t string, wg *sync.WaitGroup) {
 	if t == "" {
 		log.Fatal("choose the type")
@@ -119,15 +186,20 @@ func run(t string, wg *sync.WaitGroup) {
 		go hn(wg)
 		break
 	case "science":
-		wg.Add(1)
+		wg.Add(2)
 		go physOrg(wg)
 		go lookupAtSpace(wg)
 		break
+	case "r":
+		wg.Add(1)
+		go cs(wg)
+		break
 	case "all":
-		wg.Add(3)
+		wg.Add(4)
 		go hn(wg)
 		go physOrg(wg)
 		go lookupAtSpace(wg)
+		go cs(wg)
 		break
 	default:
 		log.Fatalf("%s: type doesn't exist", t)
