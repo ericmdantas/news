@@ -101,6 +101,14 @@ func registerFetchers(wg *sync.WaitGroup) {
 			},
 		},
 		{
+			token: "br",
+			fetchList: []func(){
+				func() {
+					g1(wg)
+				},
+			},
+		},
+		{
 			token: "r",
 			fetchList: []func(){
 				func() {
@@ -150,6 +158,30 @@ func hn(wg *sync.WaitGroup) {
 	newsDB = append(newsDB, ns)
 }
 
+func g1(wg *sync.WaitGroup) {
+	const name = "g1"
+	const url = "https://g1.globo.com/"
+
+	defer wg.Done()
+
+	doc, err := goquery.NewDocument(url)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ns := createNews(name, url)
+
+	doc.Find(".feed-post-body .feed-post-body-title a").Each(func(_ int, s *goquery.Selection) {
+		txt := s.Text()
+		url, _ := s.Attr("href")
+
+		ns.addNews(txt, url)
+	})
+
+	newsDB = append(newsDB, ns)
+}
+
 func physOrg(wg *sync.WaitGroup) {
 	const name = "phys.org"
 	const url = "https://phys.org"
@@ -159,7 +191,7 @@ func physOrg(wg *sync.WaitGroup) {
 	doc, err := goquery.NewDocument(url)
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	ns := createNews(name, url)
@@ -182,7 +214,7 @@ func lookupAtSpace(wg *sync.WaitGroup) {
 	doc, err := goquery.NewDocument(url)
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	ns := createNews(name, url)
