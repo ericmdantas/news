@@ -229,13 +229,13 @@ func cs(wg *sync.WaitGroup) {
 	newsDB = append(newsDB, ns)
 }
 
-func run(t string, wg *sync.WaitGroup) {
-	if t == "" {
-		log.Fatal("choose the type")
+func run(src string, wg *sync.WaitGroup) {
+	if src == "" {
+		log.Fatal("choose the source")
 	}
 
 	for _, v := range fetchersDB {
-		if v.token == t {
+		if v.token == src {
 			for _, cb := range v.fetchList {
 				wg.Add(1)
 				go cb()
@@ -267,11 +267,11 @@ func logNews() {
 func main() {
 	var wg sync.WaitGroup
 
-	t := flag.String("t", "", "news type")
+	src := flag.String("src", "", "source")
 	flag.Parse()
 
 	registerFetchers(&wg)
-	run(*t, &wg)
+	run(*src, &wg)
 	wg.Wait()
 	logNews()
 	logStats()
