@@ -143,7 +143,7 @@ func hn(wg *sync.WaitGroup) {
 
 	doc.Find(".athing").Each(func(_ int, s *goquery.Selection) {
 		txt := s.Find(".title:last-of-type .storylink").Text()
-		url := ""
+		url, _ := s.Find(".title:last-of-type .storylink").Attr("href")
 		ns.addNews(txt, url)
 	})
 
