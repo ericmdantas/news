@@ -53,7 +53,7 @@ func (r reddit) isEmpty() bool {
 }
 
 func (r reddit) retrieveNews() []simpleInfo {
-	var sList []simpleInfo = []simpleInfo{}
+	var sList = []simpleInfo{}
 
 	for _, v := range r.Data.Children {
 		sList = append(sList, simpleInfo{
@@ -229,13 +229,13 @@ func cs(wg *sync.WaitGroup) {
 	newsDB = append(newsDB, ns)
 }
 
-func run(src string, wg *sync.WaitGroup) {
-	if src == "" {
-		log.Fatal("choose the source")
+func run(t string, wg *sync.WaitGroup) {
+	if t == "" {
+		log.Fatal("choose the type")
 	}
 
 	for _, v := range fetchersDB {
-		if v.token == src {
+		if v.token == t {
 			for _, cb := range v.fetchList {
 				wg.Add(1)
 				go cb()
@@ -267,11 +267,11 @@ func logNews() {
 func main() {
 	var wg sync.WaitGroup
 
-	src := flag.String("src", "", "source")
+	t := flag.String("t", "", "type")
 	flag.Parse()
 
 	registerFetchers(&wg)
-	run(*src, &wg)
+	run(*t, &wg)
 	wg.Wait()
 	logNews()
 	logStats()
