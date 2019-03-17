@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -116,6 +117,14 @@ func registerFetchers(wg *sync.WaitGroup) {
 				},
 			},
 		},
+		{
+			token: "mma",
+			fetchList: []func(){
+				func() {
+					mmafighting(wg)
+				},
+			},
+		},
 	}
 
 	fetchAll := fetcher{
@@ -133,6 +142,29 @@ func registerFetchers(wg *sync.WaitGroup) {
 	fetchAll.fetchList = allFetchList
 
 	fetchersDB = append(fetchers, fetchAll)
+}
+
+func mmafighting(wg *sync.WaitGroup) {
+	const name = "MMAFighting"
+	const url = "https://mmafighting.com/news"
+
+	defer wg.Done()
+
+	doc, err := goquery.NewDocument(url)
+
+	if err != nil {
+		panic(err)
+	}
+
+	ns := createNews(name, url)
+
+	doc.Find(".c-entry-box--compact__title a").Each(func(_ int, s *goquery.Selection) {
+		txt := strings.TrimSpace(s.Text())
+		url, _ := s.Attr("href")
+		ns.addNews(txt, url)
+	})
+
+	newsDB = append(newsDB, ns)
 }
 
 func hn(wg *sync.WaitGroup) {
