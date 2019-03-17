@@ -228,9 +228,9 @@ func physOrg(wg *sync.WaitGroup) {
 
 	ns := createNews(name, url)
 
-	doc.Find(".news-box h3").Each(func(_ int, s *goquery.Selection) {
+	doc.Find(".news-box h3 a").Each(func(_ int, s *goquery.Selection) {
 		txt := s.Text()
-		url := ""
+		url, _ := s.Attr("href")
 		ns.addNews(txt, url)
 	})
 
