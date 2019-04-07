@@ -110,7 +110,7 @@ func registerFetchers(wg *sync.WaitGroup) {
 			},
 		},
 		{
-			token: "r",
+			token: "cs",
 			fetchList: []func(){
 				func() {
 					cs(wg)
