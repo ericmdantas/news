@@ -217,7 +217,7 @@ func g1(wg *sync.WaitGroup) {
 
 func physOrg(wg *sync.WaitGroup) {
 	const name = "phys.org"
-	const url = "https://phys.org"
+	const url = "https://phys.org/latest-news/"
 
 	defer wg.Done()
 
@@ -229,7 +229,7 @@ func physOrg(wg *sync.WaitGroup) {
 
 	ns := createNews(name, url)
 
-	doc.Find(".news-box h3 a").Each(func(_ int, s *goquery.Selection) {
+	doc.Find(".sorted-article-content .news-link").Each(func(_ int, s *goquery.Selection) {
 		txt := s.Text()
 		url, _ := s.Attr("href")
 		ns.addNews(txt, url)
