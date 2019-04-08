@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/fatih/color"
 )
 
 type news struct {
@@ -309,18 +310,30 @@ func run(t string, wg *sync.WaitGroup) {
 }
 
 func logStats() {
-	fmt.Printf("\nElapsed time: %v", time.Since(start))
+	ellapsed := color.New(color.BgRed)
+	fmt.Printf("\nElapsed time: ")
+	ellapsed.Printf(" %v ", time.Since(start))
+	fmt.Println()
 }
 
 func logNews() {
 	for _, news := range newsDB {
-		fmt.Printf("\n%s - %s\n\n", news.Group, news.URL)
+		group := color.New(color.Bold, color.FgYellow)
+		group.Printf("\n%s - %s\n\n", news.Group, news.URL)
 
 		for _, newsInfo := range news.Info {
-			fmt.Printf("%d. %s", newsInfo.Index, newsInfo.Title)
+			n := color.New(color.FgYellow)
+			t := color.New(color.FgWhite)
+			if newsInfo.Index < 10 {
+				n.Printf("0%d. ", newsInfo.Index)
+			} else {
+				n.Printf("%d. ", newsInfo.Index)
+			}
+
+			t.Printf("%s", newsInfo.Title)
 
 			if newsInfo.URL != "" {
-				fmt.Printf(" - %s", newsInfo.URL)
+				color.White("\n    %s", newsInfo.URL)
 			}
 
 			fmt.Println()
