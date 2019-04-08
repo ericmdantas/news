@@ -310,9 +310,9 @@ func run(t string, wg *sync.WaitGroup) {
 }
 
 func logStats() {
-	ellapsed := color.New(color.BgRed)
+	elapsed := color.New(color.BgRed)
 	fmt.Printf("\nElapsed time: ")
-	ellapsed.Printf(" %v ", time.Since(start))
+	elapsed.Printf(" %v ", time.Since(start))
 	fmt.Println()
 }
 
