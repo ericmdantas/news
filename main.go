@@ -119,6 +119,14 @@ func registerFetchers(wg *sync.WaitGroup) {
 			},
 		},
 		{
+			token: "motivation",
+			fetchList: []func(){
+				func() {
+					motivation(wg)
+				},
+			},
+		},
+		{
 			token: "mma",
 			fetchList: []func(){
 				func() {
@@ -265,6 +273,38 @@ func lookupAtSpace(wg *sync.WaitGroup) {
 func cs(wg *sync.WaitGroup) {
 	const name = "Global Offensive"
 	const url = "http://reddit.com/r/GlobalOffensive/.json"
+
+	var csStuff reddit
+
+	defer wg.Done()
+
+	ns := createNews(name, url)
+
+	for csStuff.isEmpty() {
+		time.Sleep(1500 * time.Millisecond)
+		r, err := http.Get(url)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = json.NewDecoder(r.Body).Decode(&csStuff)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	for _, v := range csStuff.retrieveNews() {
+		ns.addNews(v.Title, v.URL)
+	}
+
+	newsDB = append(newsDB, ns)
+}
+
+func motivation(wg *sync.WaitGroup) {
+	const name = "Get Motivated"
+	const url = "http://reddit.com/r/GetMotivated/.json"
 
 	var csStuff reddit
 
