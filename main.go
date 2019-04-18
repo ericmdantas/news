@@ -364,12 +364,12 @@ func logNews() {
 		for _, newsInfo := range news.Info {
 			n := color.New(color.FgYellow)
 			t := color.New(color.FgWhite)
-			if newsInfo.Index < 10 {
-				n.Printf("0%d. ", newsInfo.Index)
-			} else {
-				n.Printf("%d. ", newsInfo.Index)
+			indexFmt := "0%d. "
+			if newsInfo.Index > 9 {
+				indexFmt = "%d. "
 			}
 
+			n.Printf(indexFmt, newsInfo.Index)
 			t.Printf("%s", newsInfo.Title)
 
 			if newsInfo.URL != "" {
