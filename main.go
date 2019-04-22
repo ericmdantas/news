@@ -87,7 +87,15 @@ func registerFetchers(wg *sync.WaitGroup) {
 			token: "hn",
 			fetchList: []func(){
 				func() {
-					hn(wg)
+					hntop(wg)
+				},
+			},
+		},
+		{
+			token: "hnnew",
+			fetchList: []func(){
+				func() {
+					hnnew(wg)
 				},
 			},
 		},
@@ -176,27 +184,26 @@ func mmafighting(wg *sync.WaitGroup) {
 	newsDB = append(newsDB, ns)
 }
 
-func hn(wg *sync.WaitGroup) {
-	const name = "HN"
+func hntop(wg *sync.WaitGroup) {
+	const name = "HN - top"
 	const url = "https://news.ycombinator.com/news"
 
-	defer wg.Done()
-
-	doc, err := goquery.NewDocument(url)
+	err := grabFromHN(name, url, wg)
 
 	if err != nil {
 		panic(err)
 	}
+}
 
-	ns := createNews(name, url)
+func hnnew(wg *sync.WaitGroup) {
+	const name = "HN - new"
+	const url = "https://news.ycombinator.com/newest"
 
-	doc.Find(".athing").Each(func(_ int, s *goquery.Selection) {
-		txt := s.Find(".title:last-of-type .storylink").Text()
-		url, _ := s.Find(".title:last-of-type .storylink").Attr("href")
-		ns.addNews(txt, url)
-	})
+	err := grabFromHN(name, url, wg)
 
-	newsDB = append(newsDB, ns)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func g1(wg *sync.WaitGroup) {
@@ -290,6 +297,27 @@ func motivation(wg *sync.WaitGroup) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func grabFromHN(name, url string, wg *sync.WaitGroup) error {
+	defer wg.Done()
+
+	doc, err := goquery.NewDocument(url)
+
+	if err != nil {
+		return err
+	}
+
+	ns := createNews(name, url)
+
+	doc.Find(".athing").Each(func(_ int, s *goquery.Selection) {
+		txt := s.Find(".title:last-of-type .storylink").Text()
+		url, _ := s.Find(".title:last-of-type .storylink").Attr("href")
+		ns.addNews(txt, url)
+	})
+
+	newsDB = append(newsDB, ns)
+	return nil
 }
 
 func grabFromReddit(name, url string, wg *sync.WaitGroup) error {
