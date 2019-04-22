@@ -274,38 +274,25 @@ func cs(wg *sync.WaitGroup) {
 	const name = "Global Offensive"
 	const url = "http://reddit.com/r/GlobalOffensive/.json"
 
-	var csStuff reddit
+	err := grabFromReddit(name, url, wg)
 
-	defer wg.Done()
-
-	ns := createNews(name, url)
-
-	for csStuff.isEmpty() {
-		time.Sleep(1500 * time.Millisecond)
-		r, err := http.Get(url)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = json.NewDecoder(r.Body).Decode(&csStuff)
-
-		if err != nil {
-			log.Fatal(err)
-		}
+	if err != nil {
+		panic(err)
 	}
-
-	for _, v := range csStuff.retrieveNews() {
-		ns.addNews(v.Title, v.URL)
-	}
-
-	newsDB = append(newsDB, ns)
 }
 
 func motivation(wg *sync.WaitGroup) {
 	const name = "Get Motivated"
 	const url = "http://reddit.com/r/GetMotivated/.json"
 
+	err := grabFromReddit(name, url, wg)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+func grabFromReddit(name, url string, wg *sync.WaitGroup) error {
 	var csStuff reddit
 
 	defer wg.Done()
@@ -317,13 +304,13 @@ func motivation(wg *sync.WaitGroup) {
 		r, err := http.Get(url)
 
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 
 		err = json.NewDecoder(r.Body).Decode(&csStuff)
 
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
 	}
 
@@ -332,6 +319,8 @@ func motivation(wg *sync.WaitGroup) {
 	}
 
 	newsDB = append(newsDB, ns)
+
+	return nil
 }
 
 func run(t string, wg *sync.WaitGroup) {
