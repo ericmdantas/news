@@ -135,6 +135,14 @@ func registerFetchers(wg *sync.WaitGroup) {
 			},
 		},
 		{
+			token: "quotes",
+			fetchList: []func(){
+				func() {
+					quotes(wg)
+				},
+			},
+		},
+		{
 			token: "mma",
 			fetchList: []func(){
 				func() {
@@ -280,6 +288,17 @@ func lookupAtSpace(wg *sync.WaitGroup) {
 func cs(wg *sync.WaitGroup) {
 	const name = "Global Offensive"
 	const url = "http://reddit.com/r/GlobalOffensive/.json"
+
+	err := grabFromReddit(name, url, wg)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+func quotes(wg *sync.WaitGroup) {
+	const name = "Quotes"
+	const url = "http://reddit.com/r/quotes/.json"
 
 	err := grabFromReddit(name, url, wg)
 
