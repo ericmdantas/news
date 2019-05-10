@@ -77,9 +77,9 @@ type fetcher struct {
 	fetchList []func()
 }
 
-var newsDB = []news{}
-var fetchersDB = []fetcher{}
 var start = time.Now()
+var newsCache = []news{}
+var fetchersCache = []fetcher{}
 
 func registerFetchers(wg *sync.WaitGroup) {
 	fetchers := []fetcher{
@@ -166,7 +166,7 @@ func registerFetchers(wg *sync.WaitGroup) {
 
 	fetchAll.fetchList = allFetchList
 
-	fetchersDB = append(fetchers, fetchAll)
+	fetchersCache = append(fetchers, fetchAll)
 }
 
 func mmafighting(wg *sync.WaitGroup) {
@@ -189,7 +189,7 @@ func mmafighting(wg *sync.WaitGroup) {
 		ns.addNews(txt, url)
 	})
 
-	newsDB = append(newsDB, ns)
+	newsCache = append(newsCache, ns)
 }
 
 func hntop(wg *sync.WaitGroup) {
@@ -235,7 +235,7 @@ func g1(wg *sync.WaitGroup) {
 		ns.addNews(txt, url)
 	})
 
-	newsDB = append(newsDB, ns)
+	newsCache = append(newsCache, ns)
 }
 
 func physOrg(wg *sync.WaitGroup) {
@@ -258,7 +258,7 @@ func physOrg(wg *sync.WaitGroup) {
 		ns.addNews(txt, url)
 	})
 
-	newsDB = append(newsDB, ns)
+	newsCache = append(newsCache, ns)
 }
 
 func lookupAtSpace(wg *sync.WaitGroup) {
@@ -282,7 +282,7 @@ func lookupAtSpace(wg *sync.WaitGroup) {
 		ns.addNews(txt, url)
 	})
 
-	newsDB = append(newsDB, ns)
+	newsCache = append(newsCache, ns)
 }
 
 func cs(wg *sync.WaitGroup) {
@@ -335,7 +335,7 @@ func grabFromHN(name, url string, wg *sync.WaitGroup) error {
 		ns.addNews(txt, url)
 	})
 
-	newsDB = append(newsDB, ns)
+	newsCache = append(newsCache, ns)
 	return nil
 }
 
@@ -365,7 +365,7 @@ func grabFromReddit(name, url string, wg *sync.WaitGroup) error {
 		ns.addNews(v.Title, v.URL)
 	}
 
-	newsDB = append(newsDB, ns)
+	newsCache = append(newsCache, ns)
 
 	return nil
 }
@@ -375,7 +375,7 @@ func run(t string, wg *sync.WaitGroup) {
 		log.Fatal("choose the type")
 	}
 
-	for _, v := range fetchersDB {
+	for _, v := range fetchersCache {
 		if v.token == t {
 			for _, cb := range v.fetchList {
 				wg.Add(1)
@@ -393,7 +393,7 @@ func logStats() {
 }
 
 func logNews() {
-	for _, news := range newsDB {
+	for _, news := range newsCache {
 		group := color.New(color.Bold, color.FgYellow)
 		group.Printf("\n%s - %s\n\n", news.Group, news.URL)
 
