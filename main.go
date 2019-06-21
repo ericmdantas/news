@@ -359,13 +359,13 @@ func grabFromHN(name, url string, wg *sync.WaitGroup) error {
 }
 
 func grabFromReddit(name, url string, wg *sync.WaitGroup) error {
-	var csStuff reddit
+	var r reddit
 
 	defer wg.Done()
 
 	ns := createNews(name, url)
 
-	for csStuff.isEmpty() {
+	for r.isEmpty() {
 		time.Sleep(1500 * time.Millisecond)
 		r, err := http.Get(url)
 
@@ -373,14 +373,14 @@ func grabFromReddit(name, url string, wg *sync.WaitGroup) error {
 			return err
 		}
 
-		err = json.NewDecoder(r.Body).Decode(&csStuff)
+		err = json.NewDecoder(r.Body).Decode(&r)
 
 		if err != nil {
 			return err
 		}
 	}
 
-	for _, v := range csStuff.retrieveNews() {
+	for _, v := range r.retrieveNews() {
 		ns.addNews(v.Title, v.URL)
 	}
 
