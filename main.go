@@ -150,6 +150,14 @@ func registerFetchers(wg *sync.WaitGroup) {
 				},
 			},
 		},
+		{
+			token: "rall",
+			fetchList: []func(){
+				func() {
+					rall(wg)
+				},
+			},
+		},
 	}
 
 	fetchAll := fetcher{
@@ -299,6 +307,17 @@ func cs(wg *sync.WaitGroup) {
 func quotes(wg *sync.WaitGroup) {
 	const name = "Quotes"
 	const url = "http://reddit.com/r/quotes/.json"
+
+	err := grabFromReddit(name, url, wg)
+
+	if err != nil {
+		panic(err)
+	}
+}
+
+func rall(wg *sync.WaitGroup) {
+	const name = "Reddit - All"
+	const url = "http://reddit.com/r/all/.json"
 
 	err := grabFromReddit(name, url, wg)
 
