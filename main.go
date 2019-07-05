@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -404,6 +406,16 @@ func run(t string, wg *sync.WaitGroup) {
 	}
 }
 
+func doesFetcherExist(t string) bool {
+	for _, v := range fetchersCache {
+		if v.token == t {
+			return true
+		}
+	}
+
+	return false
+}
+
 func logStats() {
 	elapsed := color.New(color.BgRed)
 	fmt.Printf("\nElapsed time: ")
@@ -436,13 +448,46 @@ func logNews() {
 	}
 }
 
+func logAvailableFetchers() {
+	sortedFetchersTokens := []string{}
+
+	for _, v := range fetchersCache {
+		sortedFetchersTokens = append(sortedFetchersTokens, v.token)
+	}
+
+	sort.Sort(sort.StringSlice(sortedFetchersTokens))
+
+	for _, t := range sortedFetchersTokens {
+		fmt.Printf("- %s\n", t)
+	}
+}
+
+func logError(msg string) {
+	c := color.New(color.BgRed)
+	c.Printf(" %s ", msg)
+	fmt.Println()
+}
+
 func main() {
 	var wg sync.WaitGroup
+
+	registerFetchers(&wg)
 
 	t := flag.String("t", "", "type")
 	flag.Parse()
 
-	registerFetchers(&wg)
+	if *t == "" {
+		logAvailableFetchers()
+		logError("tip: -t TYPE_GOES_HERE")
+		os.Exit(1)
+	}
+
+	if !doesFetcherExist(*t) {
+		logAvailableFetchers()
+		logError(fmt.Sprintf("-t %s: NOT_FOUND", *t))
+		os.Exit(1)
+	}
+
 	run(*t, &wg)
 	wg.Wait()
 	logNews()
