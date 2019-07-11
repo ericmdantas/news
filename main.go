@@ -153,6 +153,14 @@ func registerFetchers(wg *sync.WaitGroup) {
 			},
 		},
 		{
+			token: "ss64",
+			fetchList: []func(){
+				func() {
+					ss64(wg)
+				},
+			},
+		},
+		{
 			token: "rall",
 			fetchList: []func(){
 				func() {
@@ -337,6 +345,41 @@ func motivation(wg *sync.WaitGroup) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func ss64(wg *sync.WaitGroup) {
+	const name = "ss64"
+	const url = "http://ss64.com/nt/"
+	
+	defer wg.Done()
+
+	doc, err := goquery.NewDocument(url)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ns := createNews(name, url)
+	
+	linkCount := doc.Find("a").Length()
+
+	doc.Find("a").Each(func(_ int, s *goquery.Selection) {
+		link, _ := s.Attr("href")
+
+		for i := 0; i < linkCount; i++ {
+			quoteDoc, err := goquery.NewDocument(url + link)
+
+			if err != nil {
+				return
+			}
+
+			quoteDoc.Find("quote").Each(func(i int, s *goquery.Selection) {
+				ns.addNews(s.Text(), "")
+			})
+		}
+	})
+
+	newsCache = append(newsCache, ns)
 }
 
 func grabFromHN(name, url string, wg *sync.WaitGroup) error {
