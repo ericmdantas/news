@@ -395,7 +395,13 @@ func ss64(wg *sync.WaitGroup) {
 	}
 
 	s := quoteDoc.Find(".quote").First()
-	ns.addNews(s.Text(), "")
+	t := s.Text()
+
+	if t == "" {
+		ss64(wg)
+	}
+
+	ns.addNews(t, "")
 
 	newsCache = append(newsCache, ns)
 }
