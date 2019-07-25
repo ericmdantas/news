@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"sort"
@@ -349,9 +350,21 @@ func motivation(wg *sync.WaitGroup) {
 
 func ss64(wg *sync.WaitGroup) {
 	const name = "ss64"
-	const url = "http://ss64.com/nt/"
-	
+	const baseURL = "http://ss64.com/%s/"
+	var linksWithQuotes = []string{}
+	var paths = []string{
+		"ps",
+		"bash",
+		"osx",
+		"cmd",
+		"vb",
+	}
+
 	defer wg.Done()
+
+	s1 := rand.NewSource(time.Now().UnixNano())
+	r1 := rand.New(s1)
+	url := fmt.Sprintf(baseURL, paths[r1.Intn(len(paths))])
 
 	doc, err := goquery.NewDocument(url)
 
@@ -359,25 +372,30 @@ func ss64(wg *sync.WaitGroup) {
 		log.Fatal(err)
 	}
 
-	ns := createNews(name, url)
-	
-	linkCount := doc.Find("a").Length()
-
 	doc.Find("a").Each(func(_ int, s *goquery.Selection) {
 		link, _ := s.Attr("href")
 
-		for i := 0; i < linkCount; i++ {
-			quoteDoc, err := goquery.NewDocument(url + link)
-
-			if err != nil {
-				return
-			}
-
-			quoteDoc.Find("quote").Each(func(i int, s *goquery.Selection) {
-				ns.addNews(s.Text(), "")
-			})
+		if strings.Contains(link, "..") || !strings.Contains(link, ".html") {
+			return
 		}
+
+		linksWithQuotes = append(linksWithQuotes, link)
 	})
+
+	s2 := rand.NewSource(time.Now().UnixNano())
+	r2 := rand.New(s2)
+	fullURL := url + linksWithQuotes[r2.Intn(len(linksWithQuotes))]
+
+	ns := createNews(name, fullURL)
+
+	quoteDoc, err := goquery.NewDocument(fullURL)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s := quoteDoc.Find(".quote").First()
+	ns.addNews(s.Text(), "")
 
 	newsCache = append(newsCache, ns)
 }
