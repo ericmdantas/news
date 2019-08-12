@@ -395,7 +395,8 @@ func ss64(wg *sync.WaitGroup) {
 	}
 
 	s := quoteDoc.Find(".quote").First()
-	t := s.Text()
+	t := strings.Trim(s.Text(), " ")
+	
 
 	if t == "" {
 		ss64(wg)
