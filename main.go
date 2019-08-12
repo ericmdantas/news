@@ -470,6 +470,8 @@ func run(t string, wg *sync.WaitGroup) {
 				wg.Add(1)
 				go cb()
 			}
+			
+			break
 		}
 	}
 }
