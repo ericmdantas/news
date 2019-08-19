@@ -396,9 +396,9 @@ func ss64(wg *sync.WaitGroup) {
 
 	s := quoteDoc.Find(".quote").First()
 	t := strings.Trim(s.Text(), " ")
-	
 
 	if t == "" {
+		wg.Add(1)
 		ss64(wg)
 	}
 
@@ -470,7 +470,7 @@ func run(t string, wg *sync.WaitGroup) {
 				wg.Add(1)
 				go cb()
 			}
-			
+
 			break
 		}
 	}
