@@ -353,6 +353,9 @@ func ss64(wg *sync.WaitGroup) {
 	const baseURL = "http://ss64.com/%s/"
 	var linksWithQuotes = []string{}
 	var paths = []string{
+		"access",
+		"sql",
+		"ora",
 		"ps",
 		"bash",
 		"osx",
