@@ -455,8 +455,6 @@ func grabFromReddit(name, url string, wg *sync.WaitGroup) error {
 
 		err = json.NewDecoder(res.Body).Decode(&r)
 
-		fmt.Printf("[%v] %v\n", time.Now().Format(time.RFC1123), res.Body)
-
 		if err != nil {
 			return err
 		}
