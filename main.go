@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/corpix/uarand"
 	"github.com/fatih/color"
 )
 
@@ -439,14 +440,22 @@ func grabFromReddit(name, url string, wg *sync.WaitGroup) error {
 	ns := createNews(name, url)
 
 	for r.isEmpty() {
-		time.Sleep(1500 * time.Millisecond)
-		r, err := http.Get(url)
+		time.Sleep(3000 * time.Millisecond)
 
+		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
 			return err
 		}
+		req.Header.Set("User-Agent", uarand.GetRandom())
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
 
-		err = json.NewDecoder(r.Body).Decode(&r)
+		err = json.NewDecoder(res.Body).Decode(&r)
+
+		fmt.Printf("[%v] %v\n", time.Now().Format(time.RFC1123), res.Body)
 
 		if err != nil {
 			return err
